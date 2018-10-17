@@ -27,13 +27,16 @@ namespace matrix{
 #define ASSERT(expr, message) if (!(expr)) { throw message; }
   template <typename T>
   class Matrix{
+    using size_pair = std::pair<size_t, size_t>;
+    
     T *x;
     size_t n, m;
-    using msg = std::pair<size_t, size_t>;
           
   public:
+    
     T* operator [] (size_t u) { return x + u * m; }
     const T* operator [] (size_t u) const{ return x + u * m; }
+    
     T& operator() (size_t i, size_t j) {
       ASSERT(i >= 0 && i < n && j >= 0 && j < m, "acccess error");
       return (*this)[i][j];
@@ -42,6 +45,7 @@ namespace matrix{
       ASSERT(i >= 0 && i < n && j >= 0 && j < m, "acccess error");
       return (*this)[i][j];
     }
+    
     Matrix<T> row(size_t i) const{
       ASSERT(i >= 0 && i < n, "row error");
       Matrix<T> res(1, m);
@@ -49,7 +53,7 @@ namespace matrix{
         res[0][j] = (*this)[i][j];
       return res;
     }
-
+    
     Matrix<T> column(size_t i) const{
       ASSERT(i >= 0 && i < m, "column error");
       Matrix<T> res(n, 1);
@@ -59,12 +63,13 @@ namespace matrix{
     }
 
   public:
+    
     Matrix () = default;
     Matrix (size_t n, size_t m, T v = T()):
       x(new T [n * m]), n(n) , m(m) {
       for (T *p = x, *e = x + n * m; p != e; *p++ = v);
     }
-    explicit Matrix(msg sz, T v = T()) 
+    explicit Matrix(size_pair sz, T v = T()) 
       :x(new T [sz.first * sz.second]), n(sz.first) , m(sz.second) {
       for (T *p = x, *e = x + n * m; p != e; *p++ = v);
     }
@@ -79,15 +84,11 @@ namespace matrix{
       }
     }
     Matrix (Matrix &&v) { n = v.n; m = v.m; x = v.x; v.x = nullptr;}
-    Matrix (const Matrix &v) {
-      n = v.n; m = v.m; x = new T [n * m];
-      for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < m; ++j)
-          (*this)[i][j] = v[i][j];
-    }
+    Matrix (const Matrix &v) = default;
     ~Matrix () { delete [] x; }
 
   public:
+    
     Matrix<T>& operator= (const Matrix<T> &v) {
       n = v.n; m = v.m; x = new T [n * m];
       for (size_t i = 0; i < n; ++i)
@@ -112,7 +113,7 @@ namespace matrix{
     void clear() { delete [] x; }
     size_t rowLength() const{ return n; }
     size_t columnLength() const{ return m; }
-    msg size() const{ return {rowLength(), columnLength()}; }
+    size_pair size() const{ return {rowLength(), columnLength()}; }
     void resize(size_t _n, size_t _m, T v = T()) {
       if (n * m == _n * _m) {
         n = _n; m = _m;
@@ -128,7 +129,7 @@ namespace matrix{
         n = _n; m = _m;
       }
     }
-    void resize(msg sz, T v = T()) { resize(sz.first, sz.second, v); }
+    void resize(size_pair sz, T v = T()) { resize(sz.first, sz.second, v); }
 
   public:
     Matrix<T> operator- () const{
@@ -257,7 +258,7 @@ namespace matrix{
     iterator begin() { return x; }
     iterator end() { return x + n * m; }
 		
-    std::pair<iterator, iterator> subMatrix(msg l, msg r) {
+    std::pair<iterator, iterator> subMatrix(size_pair l, size_pair r) {
       return {x + l.first * m + l.second, x + r.first * m + r.second};
     }
   };
