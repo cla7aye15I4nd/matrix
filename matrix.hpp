@@ -194,9 +194,9 @@ namespace matrix{
     }
 
     template <typename U>
-    friend Matrix<decltype(T(0) - U(0))> operator- (const Matrix<T> &lhs, const Matrix<U> &rhs) {
+    friend Matrix<decltype(T() - U())> operator- (const Matrix<T> &lhs, const Matrix<U> &rhs) {
       ASSERT(lhs.n == rhs.n && lhs.m == rhs.m, "error: size mismatch(-)");
-      Matrix<decltype(T(0) + U(0))> res(lhs.n, lhs.m);
+      Matrix<decltype(T() + U())> res(lhs.n, lhs.m);
       for (size_t i = 0; i < res.n; ++i)
         for (size_t j = 0; j < res.m; ++j)
           res[i][j] = lhs[i][j] - rhs[i][j];
@@ -204,8 +204,8 @@ namespace matrix{
     }
 
     template <typename U>
-    friend Matrix<decltype(T(0) * U(0))> operator* (const Matrix<T> &lhs, const U& v) {
-      Matrix<decltype(T(0) * U(0))> res(lhs.n, lhs.m);
+    friend Matrix<decltype(T() * U())> operator* (const Matrix<T> &lhs, const U& v) {
+      Matrix<decltype(T() * U())> res(lhs.n, lhs.m);
       for (size_t i = 0; i < res.n; ++i)
         for (size_t j = 0; j < res.m; ++j)
           res[i][j] = lhs[i][j] * v;
@@ -213,9 +213,9 @@ namespace matrix{
     }
 
     template <typename U>
-    friend Matrix<decltype(T(0) * U(0))> operator* (const Matrix<T> &lhs, const Matrix<U> &rhs) {
+    friend Matrix<decltype(T() * U())> operator* (const Matrix<T> &lhs, const Matrix<U> &rhs) {
       ASSERT(lhs.m == rhs.n, "error: size mismatch(*)");
-      Matrix<decltype(T(0) * U(0))> res(lhs.n, rhs.m);
+      Matrix<decltype(T() * U())> res(lhs.n, rhs.m);
       for (size_t i = 0; i < res.n; ++i)
         for (size_t j = 0; j < res.m; ++j)
           for (size_t k = 0; k < rhs.n; ++k)
