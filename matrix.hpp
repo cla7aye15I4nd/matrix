@@ -83,7 +83,12 @@ namespace matrix{
         for (auto &v : list) { *ptr++ = v; }
       }
     }
-    Matrix (Matrix &&v) { n = v.n; m = v.m; x = v.x; v.x = nullptr;}
+    Matrix (Matrix &&v) {
+      n = v.n;
+      m = v.m;
+      x = v.x;
+      v.x = nullptr;
+    }
     Matrix (const Matrix &v) = default;
     ~Matrix () { delete [] x; }
 
