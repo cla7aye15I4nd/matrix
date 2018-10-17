@@ -234,10 +234,10 @@ namespace matrix{
       using size_type         = size_t;
       using difference_type   = std::ptrdiff_t;
 			
-      iterator() = default;
-      iterator(const iterator&) = default;
+      iterator () = default;
+      iterator (const iterator&) = default;
       iterator &operator=(const iterator &) = default;
-			
+      iterator (const pointer& ptr):ptr(ptr) {}
     private:
       pointer ptr;
                
@@ -247,12 +247,12 @@ namespace matrix{
       iterator operator+ (difference_type offset) const{ return ptr + offset;; }
       iterator &operator-= (difference_type offset) { return ptr -= offset; }
       iterator operator- (difference_type offset) const{ return ptr - offset; }	
-      iterator &operator++ () { return ++ptr; }	
-      iterator &operator-- () { return --ptr; }
+      iterator &operator++ () { ++ptr; return *this; }	
+      iterator &operator-- () { --ptr; return *this; }
       reference operator* () const { return *ptr; }
       pointer operator->() const { return ptr; }
-      bool operator==(const iterator &o) const{ return ptr == o; }
-      bool operator!=(const iterator &o) const{ return ptr != o; }
+      bool operator==(const iterator &o) const{ return ptr == o.ptr; }
+      bool operator!=(const iterator &o) const{ return ptr != o.ptr; }
     };
     
     iterator begin() { return x; }
