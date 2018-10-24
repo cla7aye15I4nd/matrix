@@ -1,28 +1,8 @@
-// Copyright (c) 2018 dataisland
- 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
- 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
- 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
 #include <stdexcept>
-#include <bits/stdc++.h>
+#include <functional>
 
 namespace matrix{
 #define ASSERT(expr, message) if (!(expr)) { throw message; }
@@ -50,36 +30,36 @@ namespace matrix{
     Matrix<T> row(size_t i) const{
       ASSERT(i >= 0 && i < n, "row error");
       Matrix<T> res(1, m);
-      for (size_t j = 0; j < m; ++j)
-        res[0][j] = (*this)[i][j];
+      auto p = this -> find(i, 0);
+      for (auto ptr = res.begin(); ptr != res.end(); ++ptr, ++p)
+        *ptr = *p;
       return res;
     }
     
     Matrix<T> column(size_t i) const{
       ASSERT(i >= 0 && i < m, "column error");
       Matrix<T> res(n, 1);
-      for (size_t j = 0; j < n; ++j)
-        res[j][0] = (*this)[j][i];
+      auto p = this -> find(0, i);
+      for (auto ptr = res.begin(); ptr != res.end(); ++ptr, p += m)
+        *ptr = *p;
       return res;
     }
 
   public:
-    
-    //Matrix () = default;
     Matrix (size_t _n = 1, size_t _m = 1, T v = T()) {
       n = _n; m = _m;
       x = new T [n * m];
-      for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < m; ++j)
-          x[i * m + j] = v;
+      for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
+        *ptr = v;
     }
     explicit Matrix(size_pair sz, T v = T()) 
       :x(new T [sz.first * sz.second]), n(sz.first) , m(sz.second) {
-      for (T *p = x, *e = x + n * m; p != e; *p++ = v);
+      for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
+        *ptr = v;
     }
     Matrix (const std::initializer_list<std::initializer_list<T>> &matrix) {
       n = matrix.size(); m = matrix.begin() -> size();
-    
+      
       T* ptr = x = new T [n * m];
     
       for (auto &list : matrix) {
@@ -96,18 +76,19 @@ namespace matrix{
 
     template <typename U>
     Matrix (const Matrix<U> &v) {
-      n = v.rowLength(); m = v.columnLength();
+      n = v.rowLength();
+      m = v.columnLength();
       x = new T [n * m];
-      for (size_t i = 0; i < v.rowLength(); ++i)
-        for (size_t j = 0; j < v.columnLength(); ++j)
-          (*this) [i][j] = v[i][j];
+      auto ptr = this -> begin();
+      for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
+        *ptr = *p;
     }
     Matrix (const Matrix &v) {
       n = v.rowLength(); m = v.columnLength();
       x = new T [n * m];
-      for (size_t i = 0; i < v.rowLength(); ++i)
-        for (size_t j = 0; j < v.columnLength(); ++j)
-          (*this) [i][j] = v[i][j];
+      auto ptr = this -> begin();
+      for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
+        *ptr = *p;
     }
     
     ~Matrix () {
@@ -120,9 +101,9 @@ namespace matrix{
     Matrix<T>& operator= (const Matrix<T> &v) {
       if (this == &v) return *this;
       n = v.n; m = v.m; x = new T [n * m];
-      for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < m; ++j)
-          (*this)[i][j] = v[i][j];
+      auto ptr = this -> begin();
+      for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
+        *ptr = *p;
       return *this;
     }
     Matrix<T>& operator= (Matrix<T> &&v) {
@@ -135,9 +116,9 @@ namespace matrix{
       n = v.rowLength();
       m = v.columnLength();
       x = new T [n * m];
-      for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < m; ++j)
-          (*this)[i][j] = v[i][j];
+      auto ptr = this -> begin();
+      for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
+        *ptr = *p;
       return *this;
     }
           
@@ -253,13 +234,14 @@ namespace matrix{
       pointer ptr;
                
     public:
-      difference_type operator- (const iterator &p) { return ptr - p.ptr; }
-      iterator &operator+= (difference_type offset) { return ptr += offset; }
+      difference_type operator- (const iterator &p) { return ptr - p.ptr; }      
       iterator operator+ (difference_type offset) const{ return ptr + offset;; }
-      iterator &operator-= (difference_type offset) { return ptr -= offset; }
       iterator operator- (difference_type offset) const{ return ptr - offset; }	
-      iterator &operator++ () { ++ptr; return *this; }	
-      iterator &operator-- () { --ptr; return *this; }
+      iterator& operator++ () { ++ptr; return *this; }	
+      iterator& operator-- () { --ptr; return *this; }
+      iterator& operator+= (difference_type offset) { ptr += offset; return *this; }
+      iterator& operator-= (difference_type offset) { ptr -= offset; return *this; }
+      
       reference operator* () const { return *ptr; }
       pointer operator->() const { return ptr; }
       bool operator==(const iterator &o) const{ return ptr == o.ptr; }
@@ -267,13 +249,16 @@ namespace matrix{
     };
     
     iterator begin() const{
-      return n == 0 && m == 0 ? nullptr : x;
+      return n == 0 || m == 0 ? nullptr : x;
     }
     iterator end() const{
-      return n == 0 && m == 0 ? nullptr : x + n * m;
+      return n == 0 || m == 0 ? nullptr : x + n * m;
+    }
+    iterator find(size_t i, size_t j) const{
+      return x + i * m + j;
     }
 		
-    std::pair<iterator, iterator> subMatrix(size_pair l, size_pair r) {
+    std::pair<iterator, iterator> subMatrix(size_pair l, size_pair r) const{
       Matrix<T> *mat = new Matrix<T> (r.first - l.first + 1,
                                       r.second - l.second + 1);
       for (size_t i = 0; i < mat->rowLength(); ++i)
