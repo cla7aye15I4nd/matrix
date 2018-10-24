@@ -93,7 +93,7 @@ namespace matrix{
     }
     
     ~Matrix () {
-      if (n && m)
+      if (n || m)
         delete [] x;
     }
 
