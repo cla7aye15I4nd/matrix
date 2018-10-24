@@ -13,7 +13,7 @@ namespace matrix{
     
     T *x;
     size_t n, m;
-          
+    
   public:
     
     T* operator [] (size_t u) { return x + u * m; }
