@@ -1,47 +1,45 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
-#include <iostream>
 #include <cassert>
 #include <stdexcept>
 #include <functional>
 
 namespace matrix{
-#define ASSERT(expr, message) if (!(expr)) { throw message; }
+#define ASSERT(expr, message) if (!(expr)) { throw std::invalid_argument(message); }
   
     template <typename T>
     class Matrix{
-        using size_pair = std::pair<size_t, size_t>;
+        using size_p = std::pair<size_t, size_t>;
     
         T *x;
         size_t n, m;
         
     public:
     
-        T* operator [] (size_t u) { return x + u * m; }
-        const T* operator [] (size_t u) const{ return x + u * m; }
+        T* operator[] (size_t u) { return x + u * m; }
+        const T* operator[] (size_t u) const{ return x + u * m; }
     
         T& operator() (size_t i, size_t j) {
-            ASSERT(i >= 0 && i < n && j >= 0 && j < m, std::invalid_argument("operator ()"));
+            ASSERT(i >= 0 && i < n && j >= 0 && j < m, "operator ()");
             return (*this)[i][j];
         }
         const T& operator() (size_t i, size_t j) const{
-            ASSERT(i >= 0 && i < n && j >= 0 && j < m, std::invalid_argument("operator ()"));
+            ASSERT(i >= 0 && i < n && j >= 0 && j < m, "operator ()");
             return (*this)[i][j];
         }
-    
-        Matrix<T> row(size_t i) const{
-            ASSERT(i >= 0 && i < n, std::invalid_argument("row"));
-            Matrix<T> res(1, m);
+        
+        Matrix row(size_t i) const{
+            ASSERT(i >= 0 && i < n, "row");
+            Matrix res(1, m);
             auto p = this -> find(i, 0);
             for (auto ptr = res.begin(); ptr != res.end(); ++ptr, ++p)
                 *ptr = *p;
             return res;
         }
-    
-        Matrix<T> column(size_t i) const{
-            ASSERT(i >= 0 && i < m, std::invalid_argument("column"));
-            Matrix<T> res(n, 1);
+        Matrix column(size_t i) const{
+            ASSERT(i >= 0 && i < m, "column");
+            Matrix res(n, 1);
             auto p = this -> find(0, i);
             for (auto ptr = res.begin(); ptr != res.end(); ++ptr, p += m)
                 *ptr = *p;
@@ -49,32 +47,32 @@ namespace matrix{
         }
 
     public:
-        Matrix (size_t _n = 1, size_t _m = 1, T v = T())
+        Matrix(size_t _n = 1, size_t _m = 1, T v = T())
             :x(new T [_n * _m]), n(_n), m(_m) {
             for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
                 *ptr = v;
         }
-        explicit Matrix (size_pair sz, T v = T()) 
+        explicit Matrix(size_p sz, T v = T()) 
             :x(new T [sz.first * sz.second]), n(sz.first) , m(sz.second) {
             for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
                 *ptr = v;
         }
-        Matrix (const std::initializer_list<std::initializer_list<T>> &matrix) {
+        Matrix(const std::initializer_list<std::initializer_list<T>> &matrix) {
             n = matrix.size(); m = matrix.begin() -> size();
             
             for (auto &list : matrix) 
-                ASSERT(m == list.size(), std::invalid_argument("initiallizer_list"));
+                ASSERT(m == list.size(), "initiallizer_list");
             T* ptr = x = new T [n * m];
             for (auto &list : matrix) for (auto &v : list) *ptr++ = v;
         }
-        Matrix (Matrix &&v) {
+        Matrix(Matrix &&v) {
             n = v.n;
             m = v.m;
             x = v.x;
             v.x = nullptr;
         }
         template <typename U>
-        Matrix (const Matrix<U> &v) {
+        Matrix(const Matrix<U> &v) {
             n = v.rowLength();
             m = v.columnLength();
             x = new T [n * m];
@@ -82,7 +80,7 @@ namespace matrix{
             for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
                 *ptr = *p;
         }
-        Matrix (const Matrix &v) {
+        Matrix(const Matrix &v) {
             n = v.rowLength(); m = v.columnLength();
             x = new T [n * m];
             auto ptr = this -> begin();
@@ -90,13 +88,13 @@ namespace matrix{
                 *ptr = *p;
         }
         
-        ~Matrix () {
+        ~Matrix() {
             if (n || m)
                 delete [] x;
         }
         
     public:
-        Matrix<T>& operator= (const Matrix<T> &v) {
+        Matrix& operator= (const Matrix &v) {
             if (this == &v) return *this;
             if (x != nullptr) delete [] x;
             n = v.n; m = v.m; x = new T [n * m];
@@ -105,7 +103,7 @@ namespace matrix{
                 *ptr = *p;
             return *this;
         }
-        Matrix<T>& operator= (Matrix<T> &&v) {
+        Matrix& operator= (Matrix &&v) {
             n = v.n; m = v.m; 
             if (x == v.x) return *this;
             if (x != nullptr) delete [] x;
@@ -113,7 +111,7 @@ namespace matrix{
             return *this;
         }
         template <class K>
-        Matrix<T>& operator= (const Matrix<K> &v) {
+        Matrix& operator= (const Matrix<K> &v) {
             n = v.rowLength();
             m = v.columnLength();
             if (x != nullptr) delete [] x;
@@ -128,7 +126,7 @@ namespace matrix{
         void clear() { n = m = 0; delete [] x; }
         size_t rowLength() const{ return n; }
         size_t columnLength() const{ return m; }
-        size_pair size() const{ return {rowLength(), columnLength()}; }
+        size_p size() const{ return {rowLength(), columnLength()}; }
         void resize(size_t _n, size_t _m, T v = T()) {
             if (n * m == _n * _m) {
                 n = _n; m = _m;
@@ -144,33 +142,33 @@ namespace matrix{
                 n = _n; m = _m;
             }
         }
-        void resize(size_pair sz, T v = T()) { resize(sz.first, sz.second, v); }
+        void resize(size_p sz, T v = T()) { resize(sz.first, sz.second, v); }
     public:
-        Matrix<T> operator- () const{
-            Matrix<T> res(n, m);
+        Matrix operator- () const{
+            Matrix res(n, m);
             auto ptr = this -> begin();
             for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
                 *p = -*ptr;
             return res;
         }
         template <typename K>
-        Matrix<T> operator+= (const Matrix<K> &v) {
-            ASSERT(n == v.n && m == v.m, std::invalid_argument("operator+="));
+        Matrix operator+= (const Matrix<K> &v) {
+            ASSERT(n == v.n && m == v.m, "operator+=");
             auto ptr = this -> begin();
             for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
                 *ptr += *p;
             return *this;
         }
         template <typename K>
-        Matrix<T> operator-= (const Matrix<K> &v) {
-            ASSERT(n == v.n && m == v.m, std::invalid_argument("operator-="));
+        Matrix operator-= (const Matrix<K> &v) {
+            ASSERT(n == v.n && m == v.m, "operator-=");
             auto ptr = this -> begin();
             for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
                 *ptr -= *p;
             return *this;
         }
         template <typename K>
-        Matrix<T> operator*= (const K& v) {
+        Matrix operator*= (const K& v) {
             for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
                 *ptr *= v;
             return *this;
@@ -184,21 +182,21 @@ namespace matrix{
         }
 
     public:
-        bool operator == (const Matrix<T>& v) const{
+        bool operator == (const Matrix& v) const{
             if (n != v.n || m != v.m) return false;
             auto ptr = this -> begin();
             for (auto p = v.begin(); p != v.end(); ++p, ++ptr)
                 if (*ptr != *p) return false;
             return true;
         }
-        bool operator != (const Matrix<T>& v) const{
+        bool operator != (const Matrix& v) const{
             return !(*this == v);
         }
 
     public:
         template <typename U>
         Matrix<decltype(T() + U())> operator+ (const Matrix<U> &v) const{
-            ASSERT(n == v.rowLength() && m == v.columnLength(), std::invalid_argument("operator+"));
+            ASSERT(n == v.rowLength() && m == v.columnLength(), "operator+");
             Matrix<decltype(T() + U())> res(*this);
             auto ptr = v.begin();
             for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
@@ -208,8 +206,8 @@ namespace matrix{
 
         template <typename U>
         Matrix<decltype(T() - U())> operator- (const Matrix<U> &v) const{
-            ASSERT(n == v.n && m == v.m, std::invalid_argument("operator-"));
-            Matrix<decltype(T() + U())> res(*this);
+            ASSERT(n == v.n && m == v.m, "operator-");
+            Matrix<decltype(T() - U())> res(*this);
             auto ptr = v.begin();
             for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
                 *p -= *ptr;
@@ -249,7 +247,7 @@ namespace matrix{
         public:
             pointer base() const{ return ptr; }
             difference_type operator- (const iterator &p) const {
-                ASSERT(m_origin == p.m_origin && m_current == p.m_current, std::invalid_argument("iterator error"));
+                ASSERT(m_origin == p.m_origin && m_current == p.m_current, "iterator error");
                 return distance() - p.distance();
             } 
             iterator operator+ (difference_type offset) const{
@@ -291,8 +289,8 @@ namespace matrix{
             return iterator(m, m, x, x, x + i * m + j);
         }
 		
-        std::pair<iterator, iterator> subMatrix(size_pair l, size_pair r) const{
-            ASSERT(l.first <= r.first && l.second <= r.second, std::invalid_argument("subMatrix"));
+        std::pair<iterator, iterator> subMatrix(size_p l, size_p r) const{
+            ASSERT(l.first <= r.first && l.second <= r.second, "subMatrix");
             iterator beg = iterator(m, r.second - l.second + 1,
                                     this->begin().base(), this->begin().base() + l.first * m + l.second,
                                     this->begin().base() + l.first * m + l.second);
@@ -300,18 +298,18 @@ namespace matrix{
         }
     };
   
-    template <class T, class U>
-    Matrix<decltype(T() * U())> operator*(const Matrix<T> &mat, const U &x) {
-        Matrix<decltype(T() * U())> res(mat.rowLength(), mat.columnLength());
+    template <class U, class V>
+    Matrix<decltype(U() * V())> operator*(const Matrix<U> &mat, const V &x) {
+        Matrix<decltype(U() * V())> res(mat.rowLength(), mat.columnLength());
         auto ptr = mat.begin();
         for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
             *p = *ptr * x;
         return res;
     }
   
-    template <class T, class U>
-    Matrix<decltype(T() * U())> operator*(const U &x, const Matrix<T> &mat) {
-        Matrix<decltype(T() * U())> res(mat.rowLength(), mat.columnLength());
+    template <class U, class V>
+    Matrix<decltype(U() * V())> operator*(const V &x, const Matrix<U> &mat) {
+        Matrix<decltype(U() * V())> res(mat.rowLength(), mat.columnLength());
         auto ptr = mat.begin();
         for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
             *p = *ptr * x;
@@ -320,7 +318,7 @@ namespace matrix{
 
     template <class U, class V>
     Matrix<decltype(U() * V())> operator*(const Matrix<U> &u, const Matrix<V> &v) {
-        ASSERT(u.columnLength() == v.rowLength(), std::invalid_argument("matrix multiple"));
+        ASSERT(u.columnLength() == v.rowLength(), "matrix multiple");
         Matrix<decltype(U() * V())> res(u.rowLength(), v.columnLength());
         for (size_t i = 0; i < res.rowLength(); ++i)
             for (size_t k = 0; k < v.rowLength(); ++k)
