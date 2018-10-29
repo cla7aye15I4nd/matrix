@@ -61,14 +61,11 @@ namespace matrix{
         }
         Matrix (const std::initializer_list<std::initializer_list<T>> &matrix) {
             n = matrix.size(); m = matrix.begin() -> size();
-      
             
             for (auto &list : matrix) 
                 ASSERT(m == list.size(), std::invalid_argument("initiallizer_list"));
             T* ptr = x = new T [n * m];
-            for (auto &list : matrix) 
-                for (auto &v : list)  *ptr++ = v; 
-            
+            for (auto &list : matrix) for (auto &v : list) *ptr++ = v;
         }
         Matrix (Matrix &&v) {
             n = v.n;
@@ -76,7 +73,6 @@ namespace matrix{
             x = v.x;
             v.x = nullptr;
         }
-
         template <typename U>
         Matrix (const Matrix<U> &v) {
             n = v.rowLength();
@@ -233,45 +229,39 @@ namespace matrix{
             iterator () = default;
             iterator (const iterator&) = default;
             iterator &operator=(const iterator &) = default;
-            iterator (size_type m_orign, size_type m_current,
-                      const pointer& beg_orign,
+            iterator (size_type m_origin, size_type m_current,
+                      const pointer& beg_origin,
                       const pointer& beg_current,
                       const pointer& ptr)
-                :m_orign(m_orign), m_current(m_current),
-                 beg_orign(beg_orign), beg_current(beg_current), ptr(ptr) {}
+                :m_origin(m_origin), m_current(m_current),
+                 beg_origin(beg_origin), beg_current(beg_current), ptr(ptr) {}
             
         private:
-            size_type m_orign, m_current;
-            pointer beg_orign, beg_current, ptr;
+            size_type m_origin, m_current;
+            pointer beg_origin, beg_current, ptr;
 
             difference_type distance() const{
-                difference_type diff = beg_current - beg_orign;
-                difference_type head = diff % m_orign;
-                pointer left = beg_orign + diff - head;
-                return
-                    (ptr - left) / m_orign * m_current +
-                    (ptr - left) % m_orign - head;
+                difference_type diff = beg_current - beg_origin;
+                difference_type head = diff % m_origin;
+                pointer left = beg_origin + diff - head;
+                return (ptr - left) / m_origin * m_current + (ptr - left) % m_origin - head;
             }
         public:
             pointer base() const{ return ptr; }
             difference_type operator- (const iterator &p) const {
-                ASSERT(m_orign == p.m_orign && m_current == p.m_current, std::invalid_argument("iterator error"));
+                ASSERT(m_origin == p.m_origin && m_current == p.m_current, std::invalid_argument("iterator error"));
                 return distance() - p.distance();
             } 
             iterator operator+ (difference_type offset) const{
-                difference_type diff = beg_current - beg_orign;
-                difference_type head = diff % m_orign;
-                difference_type left = (head + m_current) - (ptr - beg_orign) % m_orign;
-                if (offset < left)
-                    return iterator(m_orign, m_current, beg_orign, beg_current, ptr + offset);
-                difference_type rows = (offset - left) / m_current;
-                difference_type tail = offset - left - rows * m_current;
-                return iterator(m_orign, m_current, beg_orign, beg_current,
-                                ptr + m_orign - (ptr - beg_orign) % m_orign +
-                                m_orign * rows +
-                                head + tail);
+                difference_type left = m_current - (ptr - beg_current) % m_origin;
+                return iterator(m_origin, m_current, beg_origin, beg_current, ptr + offset + 
+                                (offset < left ? 0 : (m_origin - m_current) * ((offset - left) / m_current + 1)));
             }
-            iterator operator- (difference_type offset) const{ return ptr - offset; }
+            iterator operator- (difference_type offset) const{
+                difference_type left = (ptr - beg_current) % m_origin;
+                return iterator(m_origin, m_current, beg_origin, beg_current, ptr - offset +
+                                (offset < left ? 0 : (m_current - m_origin) * ((offset - left) / m_current + 1) + left));
+            }
             iterator& operator+= (difference_type offset) { return *this = *this + offset; }
             iterator& operator-= (difference_type offset) { return *this = *this - offset; }
             iterator& operator++ () { return *this += 1; }	
@@ -281,9 +271,9 @@ namespace matrix{
             pointer operator->() const { return ptr; }
             bool operator==(const iterator &o) const{
                 return
-                    m_orign == o.m_orign &&
+                    m_origin == o.m_origin &&
                     m_current == o.m_current &&
-                    beg_orign == o.beg_orign &&
+                    beg_origin == o.beg_origin &&
                     beg_current == o.beg_current &&
                     ptr == o.ptr;
             }
