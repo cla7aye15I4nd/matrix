@@ -263,9 +263,9 @@ namespace matrix{
             iterator& operator+= (difference_type offset) { return *this = *this + offset; }
             iterator& operator-= (difference_type offset) { return *this = *this - offset; }
             iterator& operator++ () { return *this += 1; }
-            iterator operator++(int) { iterator A = *this; ++(*this); return A; }
             iterator& operator-- () { return *this -= 1; }
-            iterator operator--(int) { iterator A = *this; --(*this); return A; }
+            iterator operator++ (int) { iterator tmp = *this; *this += 1; return tmp; }
+            iterator operator-- (int) { iterator tmp = *this; *this -= 1; return tmp; }
 
             reference operator* () const { return *ptr; }
             pointer operator->() const { return ptr; }
