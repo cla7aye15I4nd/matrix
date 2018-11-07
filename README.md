@@ -16,6 +16,8 @@ C++11之后，新增加了两个函数：
 
 **移动构造函数**（Move Constructor）
 
-**移动赋值运算符**（Move Assignment Operator）
+**移动赋值运算符**（Move Assignment Operator）ah
+
+**华师大真好玩**
 
 移动构造函数不可以跨类型移动
