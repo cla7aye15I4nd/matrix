@@ -81,11 +81,7 @@ namespace matrix{
             for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
                 *ptr = v;
         }
-        explicit Matrix(size_p sz, T v = T()) 
-            :x(new T [sz.first * sz.second]), n(sz.first) , m(sz.second) {
-            for (auto ptr = this -> begin(); ptr != this -> end(); ++ptr)
-                *ptr = v;
-        }
+        explicit Matrix(size_p sz, T v = T()) : Matrix(sz.first, sz.second, v) {}
         Matrix(const std::initializer_list<std::initializer_list<T>> &matrix) {
             n = matrix.size(); m = matrix.begin() -> size();
             
