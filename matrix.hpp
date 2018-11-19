@@ -113,7 +113,7 @@ namespace matrix{
                 *ptr = *p;
         }
         
-        ~Matrix() {
+        virtual ~Matrix() {
             if (n || m)
                 delete [] x;
         }
@@ -326,7 +326,7 @@ namespace matrix{
     };
   
     template <class U, class V>
-    Matrix<decltype(U() * V())> operator*(const Matrix<U> &mat, const V &x) {
+    auto operator*(const Matrix<U> &mat, const V &x) {
         Matrix<decltype(U() * V())> res(mat.rowLength(), mat.columnLength());
         auto ptr = mat.begin();
         for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
@@ -335,16 +335,12 @@ namespace matrix{
     }
   
     template <class U, class V>
-    Matrix<decltype(U() * V())> operator*(const V &x, const Matrix<U> &mat) {
-        Matrix<decltype(U() * V())> res(mat.rowLength(), mat.columnLength());
-        auto ptr = mat.begin();
-        for (auto p = res.begin(); p != res.end(); ++p, ++ptr)
-            *p = *ptr * x;
-        return res;
+    auto operator*(const V &x, const Matrix<U> &mat) {
+        return mat * x;
     }
 
     template <class U, class V>
-    Matrix<decltype(U() * V())> operator*(const Matrix<U> &u, const Matrix<V> &v) {
+    auto operator*(const Matrix<U> &u, const Matrix<V> &v) {
         ASSERT(u.columnLength() == v.rowLength(), "matrix multiple");
         Matrix<decltype(U() * V())> res(u.rowLength(), v.columnLength());
         for (size_t i = 0; i < res.rowLength(); ++i)
